@@ -1,7 +1,8 @@
-import { useEffect, useRef, useState, useMemo } from 'react';
+import { useEffect, useRef, useState, useMemo, useCallback } from 'react';
 import { useFrame, useThree } from '@react-three/fiber';
+import { useSpring, animated } from '@react-spring/three';
+import { useScroll } from '@react-spring/web';
 import { usePrevious } from 'react-use';
-import gsap from 'gsap';
 import Part from './Part';
 const images = [
   {
@@ -22,149 +23,137 @@ const images = [
   {
     image: 'https://raw.githubusercontent.com/supahfunk/webgl-carousel/main/public/img/6.jpg',
   },
-  {
-    image: 'https://raw.githubusercontent.com/supahfunk/webgl-carousel/main/public/img/7.jpg',
-  },
-  {
-    image: 'https://raw.githubusercontent.com/supahfunk/webgl-carousel/main/public/img/8.jpg',
-  },
-  {
-    image: 'https://raw.githubusercontent.com/supahfunk/webgl-carousel/main/public/img/9.jpg',
-  },
-  {
-    image: 'https://raw.githubusercontent.com/supahfunk/webgl-carousel/main/public/img/10.jpg',
-  },
-  {
-    image: 'https://raw.githubusercontent.com/supahfunk/webgl-carousel/main/public/img/11.jpg',
-  },
-  {
-    image: 'https://raw.githubusercontent.com/supahfunk/webgl-carousel/main/public/img/12.jpg',
-  },
 ];
 
 /*------------------------------
 Plane Settings
 ------------------------------*/
 const planeSettings = {
+  wheelRadius: 600,
+  radianInterval: 45,
   width: 1,
-  height: 2.5,
+  height: 1.5,
   gap: 0.1,
 };
-
-/*------------------------------
-Gsap Defaults
-------------------------------*/
-gsap.defaults({
-  duration: 2.5,
-  ease: 'power3.out',
-});
 
 /*------------------------------
 Sidebar
 ------------------------------*/
 const Sidebar = () => {
   const [$root, setRoot] = useState();
-
+  const { scrollYProgress } = useScroll();
   const [activePlane, setActivePlane] = useState(null);
   const prevActivePlane = usePrevious(activePlane);
-  const { viewport } = useThree();
+
+  const isOver = useRef(false);
+
+  const { width, height } = useThree((state) => state.size);
+
+  const [springs, api] = useSpring(
+    () => ({
+      scale: 1,
+      position: [0, 0],
+      color: '#ff6d6d',
+      config: (key) => {
+        switch (key) {
+          case 'scale':
+            return {
+              mass: 4,
+              friction: 10,
+            };
+          case 'position':
+            return { mass: 4, friction: 220 };
+          default:
+            return {};
+        }
+      },
+    }),
+    [],
+  );
 
   /*--------------------
   Vars
   --------------------*/
-  const progress = useRef(0);
-  const startX = useRef(0);
-  const isDown = useRef(false);
-  const speedWheel = 0.02;
-  const speedDrag = -0.3;
-  const $items = useMemo(() => {
-    if ($root) return $root.children;
-  }, [$root]);
 
-  /*--------------------
-  Diaplay Items
-  --------------------*/
-  const displayItems = (item, index, active) => {
-    gsap.to(item.position, {
-      x: (index - active) * (planeSettings.width + planeSettings.gap),
-      y: 0,
+  const speedWheel = 0.02;
+
+  const handleClick = useCallback(() => {
+    let clicked = false;
+
+    return () => {
+      clicked = !clicked;
+      api.start({
+        color: clicked ? '#569AFF' : '#ff6d6d',
+      });
+    };
+  }, []);
+
+  const handlePointerEnter = () => {
+    console.log('pointer is in');
+    api.start({
+      scale: 1.2,
     });
   };
 
-  /*--------------------
-  RAF
-  --------------------*/
-  useFrame(() => {
-    progress.current = Math.max(0, Math.min(progress.current, 100));
-
-    const active = Math.floor((progress.current / 100) * ($items.length - 1));
-    $items.forEach((item, index) => displayItems(item, index, active));
-  });
-
-  /*--------------------
-  Handle Wheel
-  --------------------*/
-  const handleWheel = (e) => {
-    if (activePlane !== null) return;
-    const isVerticalScroll = Math.abs(e.deltaY) > Math.abs(e.deltaX);
-    const wheelProgress = isVerticalScroll ? e.deltaY : e.deltaX;
-    progress.current = progress.current + wheelProgress * speedWheel;
+  const handlePointerLeave = () => {
+    api.start({
+      scale: 1,
+    });
   };
 
-  /*--------------------
-  Handle Down
-  --------------------*/
-  const handleDown = (e) => {
-    if (activePlane !== null) return;
-    isDown.current = true;
-    startX.current = e.clientX || (e.touches && e.touches[0].clientX) || 0;
-  };
+  const handleWindowPointerOver = useCallback(() => {
+    isOver.current = true;
+  }, []);
 
-  /*--------------------
-  Handle Up
-  --------------------*/
-  const handleUp = () => {
-    isDown.current = false;
-  };
+  const handleWindowPointerOut = useCallback(() => {
+    isOver.current = false;
 
-  /*--------------------
-  Handle Move
-  --------------------*/
-  const handleMove = (e) => {
-    if (activePlane !== null || !isDown.current) return;
-    const x = e.clientX || (e.touches && e.touches[0].clientX) || 0;
-    const mouseProgress = (x - startX.current) * speedDrag;
-    progress.current = progress.current + mouseProgress;
-    startX.current = x;
-  };
+    api.start({
+      position: [0, 0],
+    });
+  }, []);
 
-  /*--------------------
-  Click
-  --------------------*/
+  const handlePointerMove = useCallback(
+    (e) => {
+      if (isOver.current) {
+        const x = (e.offsetX / width) * 2 - 1;
+        const y = (e.offsetY / height) * -2 + 1;
+
+        api.start({
+          position: [x * 5, y * 2],
+        });
+      }
+    },
+    [api, width, height],
+  );
+
   useEffect(() => {
-    if (!$items) return;
-    if (activePlane !== null && prevActivePlane === null) {
-      progress.current = (activePlane / ($items.length - 1)) * 100; // Calculate the progress.current based on activePlane
-    }
-  }, [activePlane, $items]);
+    window.addEventListener('pointerover', handleWindowPointerOver);
+    window.addEventListener('pointerout', handleWindowPointerOut);
+    window.addEventListener('pointermove', handlePointerMove);
+
+    return () => {
+      window.removeEventListener('pointerover', handleWindowPointerOver);
+      window.removeEventListener('pointerout', handleWindowPointerOut);
+      window.removeEventListener('pointermove', handlePointerMove);
+    };
+  }, [handleWindowPointerOver, handleWindowPointerOut, handlePointerMove]);
 
   /*--------------------
   Render Plane Events
   --------------------*/
   const renderPlaneEvents = () => {
     return (
-      <mesh
-        position={[0, 0, -0.01]}
-        onWheel={handleWheel}
-        onPointerDown={handleDown}
-        onPointerUp={handleUp}
-        onPointerMove={handleMove}
-        onPointerLeave={handleUp}
-        onPointerCancel={handleUp}
+      <animated.mesh
+        onPointerEnter={handlePointerEnter}
+        onPointerLeave={handlePointerLeave}
+        onClick={handleClick()}
+        scale={springs.scale}
       >
-        <planeGeometry args={[viewport.width, viewport.height]} />
+        <planeGeometry args={[planeSettings.width * 2, planeSettings.height * 2]} />
         <meshBasicMaterial transparent={true} opacity={0} />
-      </mesh>
+        {renderSlider()}
+      </animated.mesh>
     );
   };
 
@@ -173,28 +162,27 @@ const Sidebar = () => {
   --------------------*/
   const renderSlider = () => {
     return (
-      <group ref={setRoot}>
+      <group position={(0, 0, 0)} ref={setRoot}>
         {images.map((item, i) => (
-          <Part
-            width={planeSettings.width}
-            height={planeSettings.height}
-            setActivePlane={setActivePlane}
-            activePlane={activePlane}
-            key={item.image}
-            item={item}
-            index={i}
-          />
+          <Part {...getInitialPositions(i, images.length)} key={'random' + i} />
         ))}
       </group>
     );
   };
 
-  return (
-    <group>
-      {renderPlaneEvents()}
-      {renderSlider()}
-    </group>
-  );
+  const getInitialPositions = (i, lengthOfItems) => {
+    let x = 0;
+    let y = 0;
+    let z = 0;
+    let radianInterval = 45;
+    let wheelRadius = 3;
+
+    x = 0 + Math.cos(radianInterval * i) * wheelRadius;
+    y = 0 + Math.sin(radianInterval * i) * wheelRadius;
+    return { x, y, z };
+  };
+
+  return <group>{renderPlaneEvents()}</group>;
 };
 
 export default Sidebar;
