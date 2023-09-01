@@ -50,12 +50,18 @@ function Sidebar() {
     let wheelRadius = 300;
 
     const radian = angle * (Math.PI / 180);
-    console.log('radian ', angle, radian);
-
     let x = Number(Math.cos(radian) * wheelRadius);
     let y = Number(Math.sin(radian) * wheelRadius);
 
     return { x, y };
+  };
+
+  const setActivePart = (currentAngle) => {
+    const delta = 180 - currentAngle;
+
+    order.current.forEach((_, i) => {
+      order.current[i].moveParts(delta);
+    });
   };
 
   const onWheel = (e) => {
@@ -103,6 +109,7 @@ function Sidebar() {
           getPositionByAngle={getPositionByAngle}
           pullElementFromTop={pullElementFromTop}
           pullElementFromBottom={pullElementFromBottom}
+          setActivePart={setActivePart}
         />
       ))}{' '}
     </div>
