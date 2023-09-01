@@ -33,42 +33,10 @@ function Sidebar() {
 
   const isOver = useRef(null);
   const order = useRef([]); // Store indicies as a local ref, this represents the item order
-  const getInitialPositions = (i) => {
-    let x = 0;
-    let y = 0;
-    let z = 0;
-    let radianInterval = 45;
-    let wheelRadius = 3;
 
-    x = 0 + Math.cos(radianInterval * i) * wheelRadius;
-    y = 0 + Math.sin(radianInterval * i) * wheelRadius;
-    return { x, y, z };
-  };
-
-  const [springs, api] = useSprings(
-    images.length,
-    () => ({
-      from: { opacity: 0 },
-      to: { opacity: 1 },
-    }),
-    [],
-  ); // Create springs, each corresponds to an item, controlling its transform, scale, etc.
   /*--------------------
   Vars
   --------------------*/
-
-  const speedWheel = 0.02;
-
-  const handleClick = useCallback(() => {
-    let clicked = false;
-
-    return () => {
-      clicked = !clicked;
-      api.start({
-        color: clicked ? '#569AFF' : '#ff6d6d',
-      });
-    };
-  }, []);
 
   const handleWindowPointerOver = useCallback(() => {
     isOver.current = true;
@@ -76,18 +44,26 @@ function Sidebar() {
 
   const handleWindowPointerOut = useCallback(() => {
     isOver.current = false;
-
-    api.start({
-      position: [0, 0],
-    });
   }, []);
 
+  const getPositionByAngle = (angle) => {
+    let wheelRadius = 300;
+
+    const radian = angle * (Math.PI / 180);
+
+    let x = Number(Math.cos(radian) * wheelRadius);
+    let y = Number(Math.sin(radian) * wheelRadius);
+
+    return { x, y };
+  };
+
   const onWheel = (e) => {
-    const mouseWheelSensitivity = 10;
+    const mouseWheelSensitivity = 1;
     console.log(e);
     if (e.deltaY) {
+      let thresholdDelta = Math.max(-8, Math.min(e.deltaY, 8));
       order.current.forEach((_, i) => {
-        order.current[i].moveParts(e.deltaY * mouseWheelSensitivity);
+        order.current[i].moveParts(thresholdDelta * mouseWheelSensitivity);
       });
       // setDelta(e.deltaY * mouseWheelSensitivity);
     }
@@ -124,6 +100,7 @@ function Sidebar() {
           height={height}
           ref={(el) => (order.current[i] = el)}
           angle={angles[i]}
+          getPositionByAngle={getPositionByAngle}
           pullElementFromTop={pullElementFromTop}
           pullElementFromBottom={pullElementFromBottom}
         />

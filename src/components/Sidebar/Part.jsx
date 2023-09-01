@@ -1,37 +1,25 @@
 import { useSpring, animated, useSpringRef } from '@react-spring/web';
-import { forwardRef, useCallback, useEffect, useImperativeHandle } from 'react';
+import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef } from 'react';
 
 export const Part = forwardRef((props, ref) => {
   const radius = 300;
+  const currentAngle = useRef(0);
 
-  // useEffect(() => {
-  //   api.start({
-  //     to: [{ x: getPositionByAngle(props.angle).x, y: getPositionByAngle(props.angle).y }],
-  //     config: {
-  //       clamp: true,
-  //     },
-  //   });
-  // }, [props.angle]);
+  useEffect(() => {
+    currentAngle.current = props.angle;
+  }, []);
 
-  const getPositionByAngle = (angle) => {
-    let wheelRadius = 300;
-
-    const radian = angle * (Math.PI / 180);
-
-    let x = Number(Math.cos(radian) * wheelRadius);
-    let y = Number(Math.sin(radian) * wheelRadius);
-
-    return { x, y };
-  };
   const [springs, api] = useSpring(() => ({
     from: { x: props.width, y: props.height / 2 - 100, opacity: 0 },
-    to: [
-      { x: props.width, y: props.height / 2 - 100, opacity: 1 },
-      {
-        x: getPositionByAngle(props.angle).x,
-        y: getPositionByAngle(props.angle).y,
-      },
-    ],
+    to: async (next, cancel) => {
+      await next([{ x: props.width, y: props.height / 2 - 100, opacity: 1 }]),
+        await next([
+          {
+            x: props.getPositionByAngle(props.angle).x,
+            y: props.getPositionByAngle(props.angle).y,
+          },
+        ]);
+    },
     config: {
       clamp: true,
     },
@@ -40,13 +28,17 @@ export const Part = forwardRef((props, ref) => {
   useImperativeHandle(ref, () => ({
     moveParts: (delta) => {
       console.log('callling move parts', props.angle, delta);
+      currentAngle.current += delta;
       api.start({
-        to: {
-          x: getPositionByAngle(props.angle + delta / 50).x,
-          y: getPositionByAngle(props.angle + delta / 50).y,
+        to: async (next, cancel) => {
+          await next([
+            {
+              x: props.getPositionByAngle(currentAngle.current).x,
+              y: props.getPositionByAngle(currentAngle.current).y,
+            },
+          ]);
         },
         config: {
-          duration: 200,
           clamp: true,
         },
       });
