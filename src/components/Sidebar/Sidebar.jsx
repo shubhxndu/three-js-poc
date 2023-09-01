@@ -1,9 +1,7 @@
-import { useEffect, useRef, useState, useMemo, useCallback } from 'react';
-import { useFrame, useThree } from '@react-three/fiber';
-import { useSpring, animated } from '@react-spring/three';
-import { useScroll } from '@react-spring/web';
-import { usePrevious } from 'react-use';
-import Part from './Part';
+import { useEffect, useRef, useCallback, useState } from 'react';
+import { animated, to, useSprings } from '@react-spring/web';
+import { Part } from './Part';
+import useWindowDimensions from '../../hooks/useWindowDimensions';
 const images = [
   {
     image: 'https://raw.githubusercontent.com/supahfunk/webgl-carousel/main/public/img/1.jpg',
@@ -26,51 +24,35 @@ const images = [
 ];
 
 /*------------------------------
-Plane Settings
-------------------------------*/
-const planeSettings = {
-  wheelRadius: 600,
-  radianInterval: 45,
-  width: 1,
-  height: 1.5,
-  gap: 0.1,
-};
-
-/*------------------------------
 Sidebar
 ------------------------------*/
-const Sidebar = () => {
-  const [$root, setRoot] = useState();
-  const { scrollYProgress } = useScroll();
-  const [activePlane, setActivePlane] = useState(null);
-  const prevActivePlane = usePrevious(activePlane);
+function Sidebar() {
+  const { height, width } = useWindowDimensions();
 
-  const isOver = useRef(false);
+  const [angles, setAngles] = useState([80, 105, 135, 180, 225, 255]);
 
-  const { width, height } = useThree((state) => state.size);
+  const isOver = useRef(null);
+  const order = useRef([]); // Store indicies as a local ref, this represents the item order
+  const getInitialPositions = (i) => {
+    let x = 0;
+    let y = 0;
+    let z = 0;
+    let radianInterval = 45;
+    let wheelRadius = 3;
 
-  const [springs, api] = useSpring(
+    x = 0 + Math.cos(radianInterval * i) * wheelRadius;
+    y = 0 + Math.sin(radianInterval * i) * wheelRadius;
+    return { x, y, z };
+  };
+
+  const [springs, api] = useSprings(
+    images.length,
     () => ({
-      scale: 1,
-      position: [0, 0],
-      color: '#ff6d6d',
-      config: (key) => {
-        switch (key) {
-          case 'scale':
-            return {
-              mass: 4,
-              friction: 10,
-            };
-          case 'position':
-            return { mass: 4, friction: 220 };
-          default:
-            return {};
-        }
-      },
+      from: { opacity: 0 },
+      to: { opacity: 1 },
     }),
     [],
-  );
-
+  ); // Create springs, each corresponds to an item, controlling its transform, scale, etc.
   /*--------------------
   Vars
   --------------------*/
@@ -88,19 +70,6 @@ const Sidebar = () => {
     };
   }, []);
 
-  const handlePointerEnter = () => {
-    console.log('pointer is in');
-    api.start({
-      scale: 1.2,
-    });
-  };
-
-  const handlePointerLeave = () => {
-    api.start({
-      scale: 1,
-    });
-  };
-
   const handleWindowPointerOver = useCallback(() => {
     isOver.current = true;
   }, []);
@@ -113,76 +82,54 @@ const Sidebar = () => {
     });
   }, []);
 
-  const handlePointerMove = useCallback(
-    (e) => {
-      if (isOver.current) {
-        const x = (e.offsetX / width) * 2 - 1;
-        const y = (e.offsetY / height) * -2 + 1;
-
-        api.start({
-          position: [x * 5, y * 2],
-        });
-      }
-    },
-    [api, width, height],
-  );
-
+  const onWheel = (e) => {
+    const mouseWheelSensitivity = 10;
+    console.log(e);
+    if (e.deltaY) {
+      order.current.forEach((_, i) => {
+        order.current[i].moveParts(e.deltaY * mouseWheelSensitivity);
+      });
+      // setDelta(e.deltaY * mouseWheelSensitivity);
+    }
+  };
   useEffect(() => {
     window.addEventListener('pointerover', handleWindowPointerOver);
     window.addEventListener('pointerout', handleWindowPointerOut);
-    window.addEventListener('pointermove', handlePointerMove);
+    // window.addEventListener('pointermove', handlePointerMove);
+
+    window.addEventListener('wheel', onWheel, { passive: true });
 
     return () => {
       window.removeEventListener('pointerover', handleWindowPointerOver);
       window.removeEventListener('pointerout', handleWindowPointerOut);
-      window.removeEventListener('pointermove', handlePointerMove);
+      window.removeEventListener('wheel', onWheel);
+      // window.removeEventListener('pointermove', handlePointerMove);
     };
-  }, [handleWindowPointerOver, handleWindowPointerOut, handlePointerMove]);
+  }, [handleWindowPointerOver, handleWindowPointerOut]);
 
-  /*--------------------
-  Render Plane Events
-  --------------------*/
-  const renderPlaneEvents = () => {
-    return (
-      <animated.mesh
-        onPointerEnter={handlePointerEnter}
-        onPointerLeave={handlePointerLeave}
-        onClick={handleClick()}
-        scale={springs.scale}
-      >
-        <planeGeometry args={[planeSettings.width * 2, planeSettings.height * 2]} />
-        <meshBasicMaterial transparent={true} opacity={0} />
-        {renderSlider()}
-      </animated.mesh>
-    );
+  const pullElementFromTop = () => {
+    console.log('pulling element from top');
   };
 
-  /*--------------------
-  Render Slider
-  --------------------*/
-  const renderSlider = () => {
-    return (
-      <group position={(0, 0, 0)} ref={setRoot}>
-        {images.map((item, i) => (
-          <Part {...getInitialPositions(i, images.length)} key={'random' + i} />
-        ))}
-      </group>
-    );
+  const pullElementFromBottom = () => {
+    console.log('pulling element from bottom');
   };
 
-  const getInitialPositions = (i, lengthOfItems) => {
-    let x = 0;
-    let y = 0;
-    let z = 0;
-    let radianInterval = 45;
-    let wheelRadius = 3;
-
-    x = 0 + Math.cos(radianInterval * i) * wheelRadius;
-    y = 0 + Math.sin(radianInterval * i) * wheelRadius;
-    return { x, y, z };
-  };
-
-  return <group>{renderPlaneEvents()}</group>;
-};
+  return (
+    <div className='relative left-full top-1/2'>
+      {images.map((refs, i) => (
+        <Part
+          index={i}
+          width={width}
+          height={height}
+          ref={(el) => (order.current[i] = el)}
+          angle={angles[i]}
+          pullElementFromTop={pullElementFromTop}
+          pullElementFromBottom={pullElementFromBottom}
+        />
+      ))}{' '}
+    </div>
+  );
+}
 
 export default Sidebar;
