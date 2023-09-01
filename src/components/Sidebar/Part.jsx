@@ -2,7 +2,6 @@ import { useSpring, animated, useSpringRef } from '@react-spring/web';
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef } from 'react';
 
 export const Part = forwardRef((props, ref) => {
-  const radius = 300;
   const currentAngle = useRef(0);
 
   useEffect(() => {
@@ -21,14 +20,17 @@ export const Part = forwardRef((props, ref) => {
         ]);
     },
     config: {
-      clamp: true,
+      tension: 600,
     },
   }));
 
   useImperativeHandle(ref, () => ({
     moveParts: (delta) => {
-      console.log('callling move parts', props.angle, delta);
       currentAngle.current += delta;
+
+      if (currentAngle.current > 360) {
+        currentAngle.current -= 360;
+      }
       api.start({
         to: async (next, cancel) => {
           await next([
@@ -37,9 +39,6 @@ export const Part = forwardRef((props, ref) => {
               y: props.getPositionByAngle(currentAngle.current).y,
             },
           ]);
-        },
-        config: {
-          clamp: true,
         },
       });
     },
@@ -56,7 +55,7 @@ export const Part = forwardRef((props, ref) => {
         ...springs,
       }}
     >
-      Part Name
+      Part {props.index + 1}
     </animated.div>
   );
 });

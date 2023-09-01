@@ -50,6 +50,7 @@ function Sidebar() {
     let wheelRadius = 300;
 
     const radian = angle * (Math.PI / 180);
+    console.log('radian ', angle, radian);
 
     let x = Number(Math.cos(radian) * wheelRadius);
     let y = Number(Math.sin(radian) * wheelRadius);
@@ -59,13 +60,12 @@ function Sidebar() {
 
   const onWheel = (e) => {
     const mouseWheelSensitivity = 1;
-    console.log(e);
+    const direction = -1; // -1 for anti-clockwise, 1 for clockwise
     if (e.deltaY) {
       let thresholdDelta = Math.max(-8, Math.min(e.deltaY, 8));
       order.current.forEach((_, i) => {
-        order.current[i].moveParts(thresholdDelta * mouseWheelSensitivity);
+        order.current[i].moveParts(thresholdDelta * mouseWheelSensitivity * direction);
       });
-      // setDelta(e.deltaY * mouseWheelSensitivity);
     }
   };
   useEffect(() => {
