@@ -25,6 +25,11 @@ const images = [
 
 /*------------------------------
 Sidebar
+
+Left Angle is 180 degree
+Bottom is 90 degree
+Top is 270 degree
+Right is 0 Degree
 ------------------------------*/
 function Sidebar() {
   const { height, width } = useWindowDimensions();

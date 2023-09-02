@@ -3,6 +3,7 @@ import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef } from 
 
 export const Part = forwardRef((props, ref) => {
   const currentAngle = useRef(0);
+  const isInView = useRef(false);
 
   useEffect(() => {
     currentAngle.current = props.angle;
@@ -46,11 +47,6 @@ export const Part = forwardRef((props, ref) => {
             },
           ]);
         },
-        config: duration
-          ? {
-              duration: duration,
-            }
-          : null,
       });
     },
   }));
