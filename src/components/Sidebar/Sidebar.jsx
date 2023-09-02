@@ -39,6 +39,8 @@ function Sidebar() {
   const isOver = useRef(null);
   const order = useRef([]); // Store indicies as a local ref, this represents the item order
 
+  let snapInProgress = false;
+
   /*--------------------
   Vars
   --------------------*/
@@ -69,7 +71,25 @@ function Sidebar() {
     });
   };
 
+  const snapToDefaultPosition = () => {
+    console.log('snap to default position');
+    let closestPartIndex = 0;
+    let minimumDifference = 360;
+    order.current.forEach((_, i) => {
+      //Loop to check which part is closest to 180 Degree angle
+      let currentPartAngle = order.current[i].getCurrentAngle();
+      if (Math.abs(currentPartAngle - 180) < minimumDifference) {
+        console.log('minimumDifference', minimumDifference);
+        minimumDifference = Math.abs(currentPartAngle - 180);
+        closestPartIndex = i;
+      }
+    });
+    console.log('closest part is ', closestPartIndex);
+    order.current[closestPartIndex].snapToPart();
+  };
+
   const onWheel = (e) => {
+    clearTimeout(snapInProgress);
     const mouseWheelSensitivity = 1;
     const direction = -1; // -1 for anti-clockwise, 1 for clockwise
     if (e.deltaY) {
@@ -78,6 +98,10 @@ function Sidebar() {
         order.current[i].moveParts(thresholdDelta * mouseWheelSensitivity * direction);
       });
     }
+
+    snapInProgress = setTimeout(() => {
+      snapToDefaultPosition();
+    }, [300]);
   };
   useEffect(() => {
     window.addEventListener('pointerover', handleWindowPointerOver);

@@ -49,6 +49,12 @@ export const Part = forwardRef((props, ref) => {
         },
       });
     },
+    snapToPart: () => {
+      props.setActivePart(currentAngle.current);
+    },
+    getCurrentAngle: () => {
+      return currentAngle.current;
+    },
   }));
   return (
     <animated.div
