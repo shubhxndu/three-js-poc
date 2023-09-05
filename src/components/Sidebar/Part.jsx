@@ -1,4 +1,4 @@
-import { useSpring, animated } from '@react-spring/web';
+import { useSpring, animated, easings } from '@react-spring/web';
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef } from 'react';
 
 export const Part = forwardRef((props, ref) => {
@@ -23,6 +23,7 @@ export const Part = forwardRef((props, ref) => {
     },
     config: {
       tension: 400,
+      easing: easings.steps(5),
     },
   }));
 

@@ -34,7 +34,7 @@ Right is 0 Degree
 function Sidebar() {
   const { height, width } = useWindowDimensions();
 
-  const [angles, setAngles] = useState([80, 105, 135, 180, 225, 255]);
+  const angles = [80, 105, 142, 180, 218, 255];
 
   const isOver = useRef(null);
   const order = useRef([]); // Store indicies as a local ref, this represents the item order
@@ -64,10 +64,15 @@ function Sidebar() {
   };
 
   const setActivePart = (currentAngle) => {
+    const intervals = [70, 120];
     const delta = 180 - currentAngle;
 
-    order.current.forEach((_, i) => {
-      order.current[i].moveParts(delta);
+    intervals.forEach((value, _) => {
+      setTimeout(() => {
+        order.current.forEach((_, i) => {
+          order.current[i].moveParts(delta / intervals.length);
+        });
+      }, value);
     });
   };
 
@@ -134,7 +139,7 @@ function Sidebar() {
           width={width}
           height={height}
           ref={(el) => (order.current[i] = el)}
-          angle={angles[i]}
+          angle={i < angles.length ? angles[i] : 60}
           getPositionByAngle={getPositionByAngle}
           pullElementFromTop={pullElementFromTop}
           pullElementFromBottom={pullElementFromBottom}
