@@ -2,26 +2,9 @@ import { useEffect, useRef, useCallback, useState } from 'react';
 import { animated, to, useSprings } from '@react-spring/web';
 import { Part } from './Part';
 import useWindowDimensions from '../../hooks/useWindowDimensions';
-const images = [
-  {
-    image: 'https://raw.githubusercontent.com/supahfunk/webgl-carousel/main/public/img/1.jpg',
-  },
-  {
-    image: 'https://raw.githubusercontent.com/supahfunk/webgl-carousel/main/public/img/2.jpg',
-  },
-  {
-    image: 'https://raw.githubusercontent.com/supahfunk/webgl-carousel/main/public/img/3.jpg',
-  },
-  {
-    image: 'https://raw.githubusercontent.com/supahfunk/webgl-carousel/main/public/img/4.jpg',
-  },
-  {
-    image: 'https://raw.githubusercontent.com/supahfunk/webgl-carousel/main/public/img/5.jpg',
-  },
-  {
-    image: 'https://raw.githubusercontent.com/supahfunk/webgl-carousel/main/public/img/6.jpg',
-  },
-];
+const numberOfParts = 6;
+
+const parts = [...Array(numberOfParts).keys()];
 
 const initalAngles = {
   1: [180],
@@ -137,8 +120,8 @@ function Sidebar() {
   };
 
   const getInitialAngleByIndex = (index) => {
-    if (images.length < 6) {
-      return initalAngles[images.length][index];
+    if (numberOfParts < 6) {
+      return initalAngles[numberOfParts][index];
     } else {
       if (index < 5) {
         return initalAngles[5][index];
@@ -150,12 +133,12 @@ function Sidebar() {
 
   return (
     <div className='relative left-full top-1/2'>
-      {images.map((refs, i) => (
+      {parts.map((refs, i) => (
         <Part
           index={i}
           width={width}
           height={height}
-          infinite={images.length > 5}
+          infinite={numberOfParts > 5}
           ref={(el) => (order.current[i] = el)}
           angle={getInitialAngleByIndex(i)}
           getPositionByAngle={getPositionByAngle}
