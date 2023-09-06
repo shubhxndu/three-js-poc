@@ -23,6 +23,14 @@ const images = [
   },
 ];
 
+const initalAngles = {
+  1: [180],
+  2: [180, 142],
+  3: [218, 180, 142],
+  4: [218, 180, 142, 105],
+  5: [255, 218, 180, 142, 105],
+};
+
 /*------------------------------
 Sidebar
 
@@ -77,19 +85,16 @@ function Sidebar() {
   };
 
   const snapToDefaultPosition = () => {
-    console.log('snap to default position');
     let closestPartIndex = 0;
     let minimumDifference = 360;
     order.current.forEach((_, i) => {
       //Loop to check which part is closest to 180 Degree angle
       let currentPartAngle = order.current[i].getCurrentAngle();
       if (Math.abs(currentPartAngle - 180) < minimumDifference) {
-        console.log('minimumDifference', minimumDifference);
         minimumDifference = Math.abs(currentPartAngle - 180);
         closestPartIndex = i;
       }
     });
-    console.log('closest part is ', closestPartIndex);
     order.current[closestPartIndex].snapToPart();
   };
 
@@ -131,6 +136,18 @@ function Sidebar() {
     console.log('pulling element from bottom');
   };
 
+  const getInitialAngleByIndex = (index) => {
+    if (images.length < 6) {
+      return initalAngles[images.length][index];
+    } else {
+      if (index < 5) {
+        return initalAngles[5][index];
+      } else {
+        return 30;
+      }
+    }
+  };
+
   return (
     <div className='relative left-full top-1/2'>
       {images.map((refs, i) => (
@@ -138,8 +155,9 @@ function Sidebar() {
           index={i}
           width={width}
           height={height}
+          infinite={images.length > 5}
           ref={(el) => (order.current[i] = el)}
-          angle={i < angles.length ? angles[i] : 60}
+          angle={getInitialAngleByIndex(i)}
           getPositionByAngle={getPositionByAngle}
           pullElementFromTop={pullElementFromTop}
           pullElementFromBottom={pullElementFromBottom}

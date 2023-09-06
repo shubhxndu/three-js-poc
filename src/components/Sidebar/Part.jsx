@@ -7,12 +7,14 @@ export const Part = forwardRef((props, ref) => {
 
   useEffect(() => {
     currentAngle.current = props.angle;
+    console.log(props.angle);
   }, []);
 
   const [springs, api] = useSpring(() => ({
     from: { x: props.width, y: props.height / 2 - 100, opacity: 0 },
     to: async (next, cancel) => {
       const initialPosition = props.getPositionByAngle(props.angle);
+
       await next([{ x: props.width, y: props.height / 2 - 100, opacity: 1 }]),
         await next([
           {
