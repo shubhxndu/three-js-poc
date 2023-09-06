@@ -3,11 +3,12 @@ import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef } from 
 
 export const Part = forwardRef((props, ref) => {
   const currentAngle = useRef(0);
-  const isInView = useRef(false);
+  const isTopElement = useRef(false);
+  const isBottomElement = useRef(false);
+  const disabled = useRef(false);
 
   useEffect(() => {
     currentAngle.current = props.angle;
-    console.log(props.angle);
   }, []);
 
   const [springs, api] = useSpring(() => ({
@@ -35,11 +36,26 @@ export const Part = forwardRef((props, ref) => {
 
   useImperativeHandle(ref, () => ({
     moveParts: (delta, duration) => {
+      if (disabled.current) {
+        return;
+      }
       currentAngle.current += delta;
 
       if (currentAngle.current > 360) {
         currentAngle.current -= 360;
       }
+      // if (currentAngle.current > 246 && currentAngle.current < 255 && delta < 0) {
+      //   props.pullElementFromTop(props.index);
+      // }
+      // if (currentAngle.current > 246 && currentAngle.current < 255 && delta > 0) {
+      //   props.pushElementToTop(props.index);
+      // }
+      // if (currentAngle.current > 105 && currentAngle.current < 115 && delta < 0) {
+      //   props.pushElementToBottom(props.index);
+      // }
+      // if (currentAngle.current > 105 && currentAngle.current < 115 && delta > 0) {
+      //   props.pullElementFromBottom(props.index);
+      // }
       api.start({
         to: async (next, cancel) => {
           const newPosition = props.getPositionByAngle(currentAngle.current);
@@ -57,6 +73,36 @@ export const Part = forwardRef((props, ref) => {
     },
     getCurrentAngle: () => {
       return currentAngle.current;
+    },
+    disablePart: (angle) => {
+      currentAngle.current = angle;
+      disabled.current = true;
+      api.start({
+        to: async (next, cancel) => {
+          const newPosition = props.getPositionByAngle(currentAngle.current);
+          await next([
+            {
+              x: newPosition.x,
+              y: newPosition.y,
+            },
+          ]);
+        },
+      });
+    },
+    enablePart: (angle) => {
+      currentAngle.current = angle;
+      disabled.current = false;
+      api.start({
+        to: async (next, cancel) => {
+          const newPosition = props.getPositionByAngle(currentAngle.current);
+          await next([
+            {
+              x: newPosition.x,
+              y: newPosition.y,
+            },
+          ]);
+        },
+      });
     },
   }));
   return (

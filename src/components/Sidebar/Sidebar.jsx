@@ -25,7 +25,7 @@ Right is 0 Degree
 function Sidebar() {
   const { height, width } = useWindowDimensions();
 
-  const angles = [80, 105, 142, 180, 218, 255];
+  const parts = [0, 1, 2, 3, 4, 5];
 
   const isOver = useRef(null);
   const order = useRef([]); // Store indicies as a local ref, this represents the item order
@@ -86,15 +86,20 @@ function Sidebar() {
     const mouseWheelSensitivity = 1;
     const direction = -1; // -1 for anti-clockwise, 1 for clockwise
     if (e.deltaY) {
-      let thresholdDelta = Math.max(-8, Math.min(e.deltaY, 8));
+      // let thresholdDelta = Math.max(-8, Math.min(e.deltaY, 8));
+      let thresholdDelta = 0;
+      if (e.deltaY > 0) {
+        thresholdDelta = -4;
+      } else {
+        thresholdDelta = 4;
+      }
       order.current.forEach((_, i) => {
         order.current[i].moveParts(thresholdDelta * mouseWheelSensitivity * direction);
       });
     }
-
     snapInProgress = setTimeout(() => {
       snapToDefaultPosition();
-    }, [300]);
+    }, [100]);
   };
   useEffect(() => {
     window.addEventListener('pointerover', handleWindowPointerOver);
@@ -111,12 +116,30 @@ function Sidebar() {
     };
   }, [handleWindowPointerOver, handleWindowPointerOut]);
 
-  const pullElementFromTop = () => {
-    console.log('pulling element from top');
+  const pullElementFromTop = (index) => {
+    if (index >= 1) {
+      order.current[index - 1].enablePart(270);
+    }
   };
 
-  const pullElementFromBottom = () => {
-    console.log('pulling element from bottom');
+  const pushElementToTop = (index) => {
+    console.log('pushing element to top', index);
+    if (index >= 1) {
+      order.current[index - 1].disablePart(240);
+    }
+  };
+
+  const pullElementFromBottom = (index) => {
+    console.log('pulling element from bottom', index);
+    if (index < numberOfParts - 1) {
+      order.current[index + 1].enablePart(90);
+    }
+  };
+
+  const pushElementToBottom = (index) => {
+    if (index < numberOfParts - 1) {
+      order.current[index + 1].disablePart(60);
+    }
   };
 
   const getInitialAngleByIndex = (index) => {
@@ -143,7 +166,9 @@ function Sidebar() {
           angle={getInitialAngleByIndex(i)}
           getPositionByAngle={getPositionByAngle}
           pullElementFromTop={pullElementFromTop}
+          pushElementToTop={pushElementToTop}
           pullElementFromBottom={pullElementFromBottom}
+          pushElementToBottom={pushElementToBottom}
           setActivePart={setActivePart}
         />
       ))}{' '}
