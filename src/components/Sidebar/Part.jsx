@@ -14,14 +14,17 @@ export const Part = forwardRef((props, ref) => {
     }
   }, []);
 
-  const bind = useDrag(({ down, movement: [mx, my] }) => {
-    if (down) {
-      props.startDragging(my);
-    } else {
-      console.log(my);
-      if (Math.abs(my) > 1) props.stopDragging();
-    }
-  });
+  const bind = useDrag(
+    ({ down, movement: [mx, my] }) => {
+      if (down) {
+        props.startDragging(my);
+      } else {
+        console.log(my);
+        if (Math.abs(my) > 1) props.stopDragging();
+      }
+    },
+    { rubberband: false, preventDefault: true, threshold: 15, filterTaps: true },
+  );
 
   const [springs, api] = useSpring(() => ({
     from: { x: props.width, y: props.height / 2 - 100, opacity: 0 },
@@ -43,6 +46,7 @@ export const Part = forwardRef((props, ref) => {
   }));
 
   const setActiveElement = () => {
+    console.log('onClickCalled');
     props.setActivePart(currentAngle.current);
   };
 
@@ -82,6 +86,7 @@ export const Part = forwardRef((props, ref) => {
           ]);
         },
       });
+      // console.log('new angle for ', props.index, currentAngle.current);
     },
     snapToPart: () => {
       props.setActivePart(currentAngle.current);

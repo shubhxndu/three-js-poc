@@ -2,7 +2,7 @@ import { useEffect, useRef, useCallback, useState } from 'react';
 import { animated, to, useSprings } from '@react-spring/web';
 import { Part } from './Part';
 import useWindowDimensions from '../../hooks/useWindowDimensions';
-const numberOfParts = 8;
+const numberOfParts = 15;
 
 const parts = [...Array(numberOfParts).keys()];
 
@@ -30,7 +30,7 @@ function Sidebar() {
   let dragInProgress = true;
 
   const getPositionByAngle = (angle) => {
-    let wheelRadius = 300;
+    let wheelRadius = 270;
 
     const radian = angle * (Math.PI / 180);
     let x = Number(Math.cos(radian) * wheelRadius);
@@ -40,7 +40,7 @@ function Sidebar() {
   };
 
   const setActivePart = (currentAngle) => {
-    const intervals = [40, 80, 120, 160, 200]; // Time duration in milliseconds
+    const intervals = [100]; // Time duration in milliseconds
     const delta = 180 - currentAngle;
 
     intervals.forEach((value, _) => {
@@ -54,7 +54,8 @@ function Sidebar() {
 
   const snapToDefaultPosition = () => {
     let closestPartIndex = 0;
-    let minimumDifference = 360;
+    let minimumDifference = 180;
+
     order.current.forEach((_, i) => {
       //Loop to check which part is closest to 180 Degree angle
       let currentPartAngle = order.current[i].getCurrentAngle();
@@ -63,6 +64,7 @@ function Sidebar() {
         closestPartIndex = i;
       }
     });
+    console.log('closestPartNum', closestPartIndex + 1);
     order.current[closestPartIndex].snapToPart();
   };
 
@@ -137,17 +139,16 @@ function Sidebar() {
 
   const startDragging = (offsetY) => {
     if (offsetY) {
-      clearTimeout(dragInProgress);
-      let touchSensitivity = 1;
+      let touchSensitivity = 0.85;
       let direction = -1;
       let thresholdDelta = 0;
-      // console.log(offsetY);
-      // if (offsetY < 0) {
-      //   console.log('direction is up');
-      // } else if (offsetY > 0) {
-      //   console.log('direction is down');
-      // }
-      thresholdDelta = offsetY / 50;
+      let divider = 1.75;
+      if (offsetY > 0) {
+        thresholdDelta = 2 / divider;
+      } else {
+        thresholdDelta = -2 / divider;
+      }
+      // thresholdDelta = offsetY / 50;
       if (order.current[0].canMove() && order.current[numberOfParts - 1].canMove())
         order.current.forEach((_, i) => {
           if (order.current[i].isPartEnabled())
@@ -160,10 +161,7 @@ function Sidebar() {
   };
 
   const stopDragging = () => {
-    console.log('stopped dragging');
-    setTimeout(() => {
-      snapToDefaultPosition();
-    }, [100]);
+    snapToDefaultPosition();
     // oldY = 0;
     // window.removeEventListener('mousemove', startDragging, false);
     // window.removeEventListener('mouseup', stopDragging, false);
