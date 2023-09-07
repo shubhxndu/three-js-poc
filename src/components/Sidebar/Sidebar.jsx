@@ -205,7 +205,7 @@ function Sidebar() {
   };
 
   return (
-    <div className='relative left-full top-1/2'>
+    <animated.div className='relative left-full top-1/2 max-w-full'>
       {parts.map((refs, i) => (
         <Part
           index={i}
@@ -225,7 +225,7 @@ function Sidebar() {
           setActivePart={setActivePart}
         />
       ))}{' '}
-    </div>
+    </animated.div>
   );
 }
 

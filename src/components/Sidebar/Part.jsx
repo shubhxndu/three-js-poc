@@ -139,7 +139,7 @@ export const Part = forwardRef((props, ref) => {
 
   return (
     <animated.div
-      className={'absolute select-none touch-none'}
+      className={'fixed select-none touch-none'}
       style={{
         width: 80,
         height: 80,
