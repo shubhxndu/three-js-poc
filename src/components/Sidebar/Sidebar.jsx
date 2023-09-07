@@ -55,7 +55,7 @@ function Sidebar() {
   };
 
   const setActivePart = (currentAngle) => {
-    const intervals = [70, 120];
+    const intervals = [40, 80, 120, 160, 200]; // Time duration in milliseconds
     const delta = 180 - currentAngle;
 
     intervals.forEach((value, _) => {
@@ -89,9 +89,9 @@ function Sidebar() {
       // let thresholdDelta = Math.max(-8, Math.min(e.deltaY, 8));
       let thresholdDelta = 0;
       if (e.deltaY > 0) {
-        thresholdDelta = -4;
+        thresholdDelta = -2;
       } else {
-        thresholdDelta = 4;
+        thresholdDelta = 2;
       }
       if (order.current[0].canMove() && order.current[numberOfParts - 1].canMove())
         order.current.forEach((_, i) => {
@@ -164,7 +164,7 @@ function Sidebar() {
 
   const startDragging = (offsetY) => {
     if (offsetY) {
-      let touchSensitivity = 0.5;
+      let touchSensitivity = 1;
       let direction = -1;
       let thresholdDelta = 0;
       console.log(offsetY);
