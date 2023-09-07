@@ -1,5 +1,6 @@
 import { useSpring, animated, easings } from '@react-spring/web';
 import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef } from 'react';
+import { useDrag } from '@use-gesture/react';
 
 export const Part = forwardRef((props, ref) => {
   const currentAngle = useRef(0);
@@ -10,6 +11,11 @@ export const Part = forwardRef((props, ref) => {
   useEffect(() => {
     currentAngle.current = props.angle;
   }, []);
+
+  const bind = useDrag(({ down, movement: [mx, my] }) => {
+    // api.start({ x: down ? mx : 0, y: down ? my : 0, immediate: down })
+    down ? props.startDragging(my) : props.stopDragging();
+  });
 
   const [springs, api] = useSpring(() => ({
     from: { x: props.width, y: props.height / 2 - 100, opacity: 0 },
@@ -125,7 +131,7 @@ export const Part = forwardRef((props, ref) => {
 
   return (
     <animated.div
-      className={'absolute select-none'}
+      className={'absolute select-none touch-none'}
       style={{
         width: 80,
         height: 80,
@@ -135,6 +141,7 @@ export const Part = forwardRef((props, ref) => {
         ...springs,
       }}
       onClick={setActiveElement}
+      {...bind()}
     >
       Part {props.index + 1}
     </animated.div>

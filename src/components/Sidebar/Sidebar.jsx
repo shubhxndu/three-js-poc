@@ -104,19 +104,12 @@ function Sidebar() {
     }, [100]);
   };
   useEffect(() => {
-    window.addEventListener('pointerover', handleWindowPointerOver);
-    window.addEventListener('pointerout', handleWindowPointerOut);
-    // window.addEventListener('pointermove', handlePointerMove);
-
     window.addEventListener('wheel', onWheel, { passive: true });
 
     return () => {
-      window.removeEventListener('pointerover', handleWindowPointerOver);
-      window.removeEventListener('pointerout', handleWindowPointerOut);
       window.removeEventListener('wheel', onWheel);
-      // window.removeEventListener('pointermove', handlePointerMove);
     };
-  }, [handleWindowPointerOver, handleWindowPointerOut]);
+  }, []);
 
   const pullElementFromTop = (index) => {
     console.log('pulling element from top', index);
@@ -126,14 +119,12 @@ function Sidebar() {
   };
 
   const pushElementToTop = (index) => {
-    console.log('pushing element to top', index);
     if (index >= 1) {
       order.current[index - 1].disablePart(280);
     }
   };
 
   const pullElementFromBottom = (index) => {
-    console.log('pulling element from bottom', index);
     if (index < numberOfParts - 1) {
       order.current[index + 1].enablePart(90);
     }
@@ -169,25 +160,19 @@ function Sidebar() {
       dragStartX: clientX,
       dragStartY: clientY,
     };
-    window.addEventListener('mousemove', startDragging, false);
-    window.addEventListener('mouseup', stopDragging, false);
   };
 
-  const startDragging = ({ offsetY, pageY }) => {
+  const startDragging = (offsetY) => {
     if (offsetY) {
-      let touchSensitivity = 0.4;
-      let thresholdOffset = [-2, 2];
+      let touchSensitivity = 0.5;
       let direction = -1;
       let thresholdDelta = 0;
-
-      if (pageY < oldY) {
+      console.log(offsetY);
+      if (offsetY < 0) {
         console.log('direction is up');
-        direction = 1;
-      } else if (pageY > oldY) {
+      } else if (offsetY > 0) {
         console.log('direction is down');
-        direction = -1;
       }
-      oldY = pageY;
       thresholdDelta = offsetY / 50;
       if (order.current[0].canMove() && order.current[numberOfParts - 1].canMove())
         order.current.forEach((_, i) => {
@@ -198,13 +183,17 @@ function Sidebar() {
   };
 
   const stopDragging = () => {
-    snapToDefaultPosition();
-    window.removeEventListener('mousemove', startDragging, false);
-    window.removeEventListener('mouseup', stopDragging, false);
+    console.log('stopped dragging');
+    setTimeout(() => {
+      snapToDefaultPosition();
+    }, [100]);
+    // oldY = 0;
+    // window.removeEventListener('mousemove', startDragging, false);
+    // window.removeEventListener('mouseup', stopDragging, false);
   };
 
   return (
-    <div className='relative left-full top-1/2' onMouseDown={initialiseDrag} ref={sidebarRef}>
+    <div className='relative left-full top-1/2'>
       {parts.map((refs, i) => (
         <Part
           index={i}
@@ -213,6 +202,8 @@ function Sidebar() {
           infinite={numberOfParts > 5}
           ref={(el) => (order.current[i] = el)}
           angle={getInitialAngleByIndex(i)}
+          startDragging={startDragging}
+          stopDragging={stopDragging}
           getPositionByAngle={getPositionByAngle}
           pullElementFromTop={pullElementFromTop}
           pushElementToTop={pushElementToTop}
