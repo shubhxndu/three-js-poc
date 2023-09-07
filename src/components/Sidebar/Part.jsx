@@ -4,17 +4,23 @@ import { useDrag } from '@use-gesture/react';
 
 export const Part = forwardRef((props, ref) => {
   const currentAngle = useRef(0);
-  const isTopElement = useRef(false);
-  const isBottomElement = useRef(false);
   const disabled = useRef(false);
 
   useEffect(() => {
     currentAngle.current = props.angle;
+    if (currentAngle.current === 47) {
+      disabled.current = true;
+      currentAngle.current = 40;
+    }
   }, []);
 
   const bind = useDrag(({ down, movement: [mx, my] }) => {
-    // api.start({ x: down ? mx : 0, y: down ? my : 0, immediate: down })
-    down ? props.startDragging(my) : props.stopDragging();
+    if (down) {
+      props.startDragging(my);
+    } else {
+      console.log(my);
+      if (Math.abs(my) > 1) props.stopDragging();
+    }
   });
 
   const [springs, api] = useSpring(() => ({
@@ -53,18 +59,18 @@ export const Part = forwardRef((props, ref) => {
       if (currentAngle.current >= 360) {
         currentAngle.current = currentAngle.current % 360;
       }
-      // if (currentAngle.current > 246 && currentAngle.current < 255 && delta < 0) {
-      //   props.pullElementFromTop(props.index);
-      // }
-      // if (currentAngle.current > 246 && currentAngle.current < 255 && delta > 0) {
-      //   props.pushElementToTop(props.index);
-      // }
-      // if (currentAngle.current > 105 && currentAngle.current < 115 && delta < 0) {
-      //   props.pushElementToBottom(props.index);
-      // }
-      // if (currentAngle.current > 105 && currentAngle.current < 115 && delta > 0) {
-      //   props.pullElementFromBottom(props.index);
-      // }
+      if (currentAngle.current > 249 && currentAngle.current < 255 && delta < 0) {
+        props.pullElementFromTop(props.index);
+      }
+      if (currentAngle.current > 249 && currentAngle.current < 255 && delta > 0) {
+        props.pushElementToTop(props.index);
+      }
+      if (currentAngle.current > 105 && currentAngle.current < 112 && delta < 0) {
+        props.pushElementToBottom(props.index);
+      }
+      if (currentAngle.current > 105 && currentAngle.current < 112 && delta > 0) {
+        props.pullElementFromBottom(props.index);
+      }
       api.start({
         to: async (next, cancel) => {
           const newPosition = props.getPositionByAngle(currentAngle.current);

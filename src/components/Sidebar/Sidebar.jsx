@@ -2,7 +2,7 @@ import { useEffect, useRef, useCallback, useState } from 'react';
 import { animated, to, useSprings } from '@react-spring/web';
 import { Part } from './Part';
 import useWindowDimensions from '../../hooks/useWindowDimensions';
-const numberOfParts = 5;
+const numberOfParts = 8;
 
 const parts = [...Array(numberOfParts).keys()];
 
@@ -24,25 +24,10 @@ Right is 0 Degree
 ------------------------------*/
 function Sidebar() {
   const { height, width } = useWindowDimensions();
-  let oldY = 0;
-  const sidebarRef = useRef(null);
-  const dragProps = useRef();
-  const isOver = useRef(null);
   const order = useRef([]); // Store indicies as a local ref, this represents the item order
 
   let snapInProgress = false;
-
-  /*--------------------
-  Vars
-  --------------------*/
-
-  const handleWindowPointerOver = useCallback(() => {
-    isOver.current = true;
-  }, []);
-
-  const handleWindowPointerOut = useCallback(() => {
-    isOver.current = false;
-  }, []);
+  let dragInProgress = true;
 
   const getPositionByAngle = (angle) => {
     let wheelRadius = 300;
@@ -83,7 +68,7 @@ function Sidebar() {
 
   const onWheel = (e) => {
     clearTimeout(snapInProgress);
-    const mouseWheelSensitivity = 1.235;
+    const mouseWheelSensitivity = 0.85;
     const direction = -1; // -1 for anti-clockwise, 1 for clockwise
     if (e.deltaY) {
       // let thresholdDelta = Math.max(-8, Math.min(e.deltaY, 8));
@@ -114,25 +99,27 @@ function Sidebar() {
   const pullElementFromTop = (index) => {
     console.log('pulling element from top', index);
     if (index >= 1) {
-      order.current[index - 1].enablePart(255);
+      // first part + 37 degrees
+      order.current[index - 1].enablePart(290);
     }
   };
 
   const pushElementToTop = (index) => {
     if (index >= 1) {
-      order.current[index - 1].disablePart(280);
+      order.current[index - 1].disablePart(290);
     }
   };
 
   const pullElementFromBottom = (index) => {
     if (index < numberOfParts - 1) {
-      order.current[index + 1].enablePart(90);
+      // Last part - 37 degrees
+      order.current[index + 1].enablePart(68);
     }
   };
 
   const pushElementToBottom = (index) => {
     if (index < numberOfParts - 1) {
-      order.current[index + 1].disablePart(60);
+      order.current[index + 1].disablePart(40);
     }
   };
 
@@ -143,42 +130,32 @@ function Sidebar() {
       if (index < 5) {
         return initalAngles[5][index];
       } else {
-        return 60;
+        return 47;
       }
     }
   };
 
-  const initialiseDrag = (event) => {
-    const { target, clientX, clientY, pageY } = event;
-    const { offsetTop, offsetLeft } = target;
-    const { left, top } = sidebarRef.current.getBoundingClientRect();
-
-    oldY = event.pageY;
-    dragProps.current = {
-      dragStartLeft: left - offsetLeft,
-      dragStartTop: top - offsetTop,
-      dragStartX: clientX,
-      dragStartY: clientY,
-    };
-  };
-
   const startDragging = (offsetY) => {
     if (offsetY) {
+      clearTimeout(dragInProgress);
       let touchSensitivity = 1;
       let direction = -1;
       let thresholdDelta = 0;
-      console.log(offsetY);
-      if (offsetY < 0) {
-        console.log('direction is up');
-      } else if (offsetY > 0) {
-        console.log('direction is down');
-      }
+      // console.log(offsetY);
+      // if (offsetY < 0) {
+      //   console.log('direction is up');
+      // } else if (offsetY > 0) {
+      //   console.log('direction is down');
+      // }
       thresholdDelta = offsetY / 50;
       if (order.current[0].canMove() && order.current[numberOfParts - 1].canMove())
         order.current.forEach((_, i) => {
           if (order.current[i].isPartEnabled())
             order.current[i].moveParts(thresholdDelta * touchSensitivity * direction);
         });
+      // dragInProgress = setTimeout(() => {
+      //   snapToDefaultPosition();
+      // }, [100]);
     }
   };
 
@@ -197,6 +174,7 @@ function Sidebar() {
       {parts.map((refs, i) => (
         <Part
           index={i}
+          key={`randomKey${i}`}
           width={width}
           height={height}
           infinite={numberOfParts > 5}
