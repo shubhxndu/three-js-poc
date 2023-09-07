@@ -43,16 +43,42 @@ function Sidebar() {
   };
 
   const setActivePart = (currentAngle) => {
-    const intervals = [30, 60, 90, 120, 150]; // Time duration in milliseconds
+    const movementInterval = 10; // Time duration in milliseconds
     const delta = 180 - currentAngle;
-
-    intervals.forEach((value, _) => {
-      setTimeout(() => {
-        order.current.forEach((_, i) => {
-          order.current[i].moveParts(delta / intervals.length);
-        });
-      }, value);
-    });
+    let remainingDelta = delta;
+    if (remainingDelta < 0) {
+      for (let i = 0; i < Math.abs(delta) / 2; i++) {
+        setTimeout(() => {
+          order.current.forEach((_, i) => {
+            order.current[i].moveParts(-2);
+          });
+        }, i * movementInterval);
+        remainingDelta += 2;
+      }
+      if (remainingDelta == -1) {
+        setTimeout(() => {
+          order.current.forEach((_, i) => {
+            order.current[i].moveParts(-1);
+          });
+        }, movementInterval);
+      }
+    } else {
+      for (let i = 0; i < Math.abs(delta) / 2; i++) {
+        setTimeout(() => {
+          order.current.forEach((_, i) => {
+            order.current[i].moveParts(2);
+          });
+        }, i * movementInterval);
+        remainingDelta -= 2;
+      }
+      if (remainingDelta == 1) {
+        setTimeout(() => {
+          order.current.forEach((_, i) => {
+            order.current[i].moveParts(1);
+          });
+        }, movementInterval);
+      }
+    }
   };
 
   const snapToDefaultPosition = () => {
@@ -67,7 +93,6 @@ function Sidebar() {
         closestPartIndex = i;
       }
     });
-    console.log('closestPartNum', closestPartIndex + 1);
     order.current[closestPartIndex].snapToPart();
   };
 
@@ -102,7 +127,6 @@ function Sidebar() {
   }, []);
 
   const pullElementFromTop = (index) => {
-    console.log('pulling element from top', index);
     if (index >= 1) {
       // first part + 37 degrees
       order.current[index - 1].enablePart(290);

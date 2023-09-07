@@ -19,7 +19,6 @@ export const Part = forwardRef((props, ref) => {
       if (down) {
         props.startDragging(my);
       } else {
-        console.log(my);
         if (Math.abs(my) > 1) props.stopDragging();
       }
     },
@@ -85,7 +84,6 @@ export const Part = forwardRef((props, ref) => {
           ]);
         },
       });
-      // console.log('new angle for ', props.index, currentAngle.current);
     },
     snapToPart: () => {
       props.setActivePart(currentAngle.current);
