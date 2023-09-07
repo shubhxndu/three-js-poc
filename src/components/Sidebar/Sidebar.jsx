@@ -2,7 +2,7 @@ import { useEffect, useRef, useCallback, useState } from 'react';
 import { animated, to, useSprings } from '@react-spring/web';
 import { Part } from './Part';
 import useWindowDimensions from '../../hooks/useWindowDimensions';
-const numberOfParts = 15;
+const numberOfParts = 6;
 
 const parts = [...Array(numberOfParts).keys()];
 
@@ -30,6 +30,7 @@ function Sidebar() {
   let dragInProgress = true;
 
   const infiniteWheelThreshold = 5;
+  const isWheelInfinite = numberOfParts > infiniteWheelThreshold;
 
   const getPositionByAngle = (angle) => {
     let wheelRadius = 270;
@@ -106,7 +107,7 @@ function Sidebar() {
       // first part + 37 degrees
       order.current[index - 1].enablePart(290);
     }
-    if (index == 0) {
+    if (index == 0 && isWheelInfinite) {
       order.current[numberOfParts - 1].enablePart(290);
     }
   };
@@ -115,7 +116,7 @@ function Sidebar() {
     if (index >= 1) {
       order.current[index - 1].disablePart(290);
     }
-    if (index == 0) {
+    if (index == 0 && isWheelInfinite) {
       order.current[numberOfParts - 1].disablePart(290);
     }
   };
@@ -124,7 +125,7 @@ function Sidebar() {
     if (index < numberOfParts - 1) {
       // Last part - 37 degrees
       order.current[index + 1].enablePart(68);
-    } else {
+    } else if (isWheelInfinite) {
       order.current[0].enablePart(68);
     }
   };
@@ -132,7 +133,7 @@ function Sidebar() {
   const pushElementToBottom = (index) => {
     if (index < numberOfParts - 1) {
       order.current[index + 1].disablePart(40);
-    } else {
+    } else if (isWheelInfinite) {
       order.current[0].disablePart(40);
     }
   };
@@ -187,7 +188,7 @@ function Sidebar() {
           key={`randomKey${i}`}
           width={width}
           height={height}
-          infinite={numberOfParts > infiniteWheelThreshold}
+          infinite={isWheelInfinite}
           ref={(el) => (order.current[i] = el)}
           angle={getInitialAngleByIndex(i)}
           startDragging={startDragging}
