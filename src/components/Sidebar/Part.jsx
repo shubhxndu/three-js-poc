@@ -41,8 +41,11 @@ export const Part = forwardRef((props, ref) => {
       }
       currentAngle.current += delta;
 
-      if (currentAngle.current > 360) {
-        currentAngle.current -= 360;
+      if (currentAngle.current <= 0) {
+        currentAngle.current = 360 - Math.abs(currentAngle.current);
+      }
+      if (currentAngle.current >= 360) {
+        currentAngle.current = currentAngle.current % 360;
       }
       // if (currentAngle.current > 246 && currentAngle.current < 255 && delta < 0) {
       //   props.pullElementFromTop(props.index);
@@ -76,18 +79,20 @@ export const Part = forwardRef((props, ref) => {
     },
     disablePart: (angle) => {
       currentAngle.current = angle;
+      if (!disabled.current) {
+        api.start({
+          to: async (next, cancel) => {
+            const newPosition = props.getPositionByAngle(currentAngle.current);
+            await next([
+              {
+                x: newPosition.x,
+                y: newPosition.y,
+              },
+            ]);
+          },
+        });
+      }
       disabled.current = true;
-      api.start({
-        to: async (next, cancel) => {
-          const newPosition = props.getPositionByAngle(currentAngle.current);
-          await next([
-            {
-              x: newPosition.x,
-              y: newPosition.y,
-            },
-          ]);
-        },
-      });
     },
     enablePart: (angle) => {
       currentAngle.current = angle;
@@ -104,10 +109,14 @@ export const Part = forwardRef((props, ref) => {
         },
       });
     },
+    isPartEnabled: () => {
+      return !disabled.currrent;
+    },
   }));
+
   return (
     <animated.div
-      className={'absolute'}
+      className={'absolute select-none'}
       style={{
         width: 80,
         height: 80,

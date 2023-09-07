@@ -2,7 +2,7 @@ import { useEffect, useRef, useCallback, useState } from 'react';
 import { animated, to, useSprings } from '@react-spring/web';
 import { Part } from './Part';
 import useWindowDimensions from '../../hooks/useWindowDimensions';
-const numberOfParts = 6;
+const numberOfParts = 5;
 
 const parts = [...Array(numberOfParts).keys()];
 
@@ -24,9 +24,9 @@ Right is 0 Degree
 ------------------------------*/
 function Sidebar() {
   const { height, width } = useWindowDimensions();
-
-  const parts = [0, 1, 2, 3, 4, 5];
-
+  let oldY = 0;
+  const sidebarRef = useRef(null);
+  const dragProps = useRef();
   const isOver = useRef(null);
   const order = useRef([]); // Store indicies as a local ref, this represents the item order
 
@@ -83,7 +83,7 @@ function Sidebar() {
 
   const onWheel = (e) => {
     clearTimeout(snapInProgress);
-    const mouseWheelSensitivity = 1;
+    const mouseWheelSensitivity = 1.235;
     const direction = -1; // -1 for anti-clockwise, 1 for clockwise
     if (e.deltaY) {
       // let thresholdDelta = Math.max(-8, Math.min(e.deltaY, 8));
@@ -94,7 +94,8 @@ function Sidebar() {
         thresholdDelta = 4;
       }
       order.current.forEach((_, i) => {
-        order.current[i].moveParts(thresholdDelta * mouseWheelSensitivity * direction);
+        if (order.current[i].isPartEnabled())
+          order.current[i].moveParts(thresholdDelta * mouseWheelSensitivity * direction);
       });
     }
     snapInProgress = setTimeout(() => {
@@ -117,15 +118,16 @@ function Sidebar() {
   }, [handleWindowPointerOver, handleWindowPointerOut]);
 
   const pullElementFromTop = (index) => {
+    console.log('pulling element from top', index);
     if (index >= 1) {
-      order.current[index - 1].enablePart(270);
+      order.current[index - 1].enablePart(255);
     }
   };
 
   const pushElementToTop = (index) => {
     console.log('pushing element to top', index);
     if (index >= 1) {
-      order.current[index - 1].disablePart(240);
+      order.current[index - 1].disablePart(280);
     }
   };
 
@@ -149,13 +151,58 @@ function Sidebar() {
       if (index < 5) {
         return initalAngles[5][index];
       } else {
-        return 30;
+        return 60;
       }
     }
   };
 
+  const initialiseDrag = (event) => {
+    const { target, clientX, clientY, pageY } = event;
+    const { offsetTop, offsetLeft } = target;
+    const { left, top } = sidebarRef.current.getBoundingClientRect();
+
+    oldY = event.pageY;
+    dragProps.current = {
+      dragStartLeft: left - offsetLeft,
+      dragStartTop: top - offsetTop,
+      dragStartX: clientX,
+      dragStartY: clientY,
+    };
+    window.addEventListener('mousemove', startDragging, false);
+    window.addEventListener('mouseup', stopDragging, false);
+  };
+
+  const startDragging = ({ offsetY, pageY }) => {
+    if (offsetY) {
+      let touchSensitivity = 0.4;
+      let thresholdOffset = [-2, 2];
+      let direction = -1;
+      let thresholdDelta = 0;
+
+      if (pageY < oldY) {
+        console.log('direction is up');
+        direction = 1;
+      } else if (pageY > oldY) {
+        console.log('direction is down');
+        direction = -1;
+      }
+      oldY = pageY;
+      thresholdDelta = offsetY / 50;
+      order.current.forEach((_, i) => {
+        if (order.current[i].isPartEnabled())
+          order.current[i].moveParts(thresholdDelta * touchSensitivity * direction);
+      });
+    }
+  };
+
+  const stopDragging = () => {
+    snapToDefaultPosition();
+    window.removeEventListener('mousemove', startDragging, false);
+    window.removeEventListener('mouseup', stopDragging, false);
+  };
+
   return (
-    <div className='relative left-full top-1/2'>
+    <div className='relative left-full top-1/2' onMouseDown={initialiseDrag} ref={sidebarRef}>
       {parts.map((refs, i) => (
         <Part
           index={i}
