@@ -93,10 +93,11 @@ function Sidebar() {
       } else {
         thresholdDelta = 4;
       }
-      order.current.forEach((_, i) => {
-        if (order.current[i].isPartEnabled())
-          order.current[i].moveParts(thresholdDelta * mouseWheelSensitivity * direction);
-      });
+      if (order.current[0].canMove() && order.current[numberOfParts - 1].canMove())
+        order.current.forEach((_, i) => {
+          if (order.current[i].isPartEnabled())
+            order.current[i].moveParts(thresholdDelta * mouseWheelSensitivity * direction);
+        });
     }
     snapInProgress = setTimeout(() => {
       snapToDefaultPosition();
@@ -188,10 +189,11 @@ function Sidebar() {
       }
       oldY = pageY;
       thresholdDelta = offsetY / 50;
-      order.current.forEach((_, i) => {
-        if (order.current[i].isPartEnabled())
-          order.current[i].moveParts(thresholdDelta * touchSensitivity * direction);
-      });
+      if (order.current[0].canMove() && order.current[numberOfParts - 1].canMove())
+        order.current.forEach((_, i) => {
+          if (order.current[i].isPartEnabled())
+            order.current[i].moveParts(thresholdDelta * touchSensitivity * direction);
+        });
     }
   };
 

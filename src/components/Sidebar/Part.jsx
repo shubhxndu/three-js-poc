@@ -112,6 +112,15 @@ export const Part = forwardRef((props, ref) => {
     isPartEnabled: () => {
       return !disabled.currrent;
     },
+    canMove: () => {
+      if (props.index === 0 && currentAngle.current <= 160) {
+        return false;
+      }
+      if (props.index !== 0 && currentAngle.current >= 200) {
+        return false;
+      }
+      return true;
+    },
   }));
 
   return (
