@@ -29,6 +29,8 @@ function Sidebar() {
   let snapInProgress = false;
   let dragInProgress = true;
 
+  const infiniteWheelThreshold = 5;
+
   const getPositionByAngle = (angle) => {
     let wheelRadius = 270;
 
@@ -40,7 +42,7 @@ function Sidebar() {
   };
 
   const setActivePart = (currentAngle) => {
-    const intervals = [100]; // Time duration in milliseconds
+    const intervals = [30, 60, 90, 120, 150]; // Time duration in milliseconds
     const delta = 180 - currentAngle;
 
     intervals.forEach((value, _) => {
@@ -104,11 +106,17 @@ function Sidebar() {
       // first part + 37 degrees
       order.current[index - 1].enablePart(290);
     }
+    if (index == 0) {
+      order.current[numberOfParts - 1].enablePart(290);
+    }
   };
 
   const pushElementToTop = (index) => {
     if (index >= 1) {
       order.current[index - 1].disablePart(290);
+    }
+    if (index == 0) {
+      order.current[numberOfParts - 1].disablePart(290);
     }
   };
 
@@ -116,12 +124,16 @@ function Sidebar() {
     if (index < numberOfParts - 1) {
       // Last part - 37 degrees
       order.current[index + 1].enablePart(68);
+    } else {
+      order.current[0].enablePart(68);
     }
   };
 
   const pushElementToBottom = (index) => {
     if (index < numberOfParts - 1) {
       order.current[index + 1].disablePart(40);
+    } else {
+      order.current[0].disablePart(40);
     }
   };
 
@@ -175,7 +187,7 @@ function Sidebar() {
           key={`randomKey${i}`}
           width={width}
           height={height}
-          infinite={numberOfParts > 5}
+          infinite={numberOfParts > infiniteWheelThreshold}
           ref={(el) => (order.current[i] = el)}
           angle={getInitialAngleByIndex(i)}
           startDragging={startDragging}

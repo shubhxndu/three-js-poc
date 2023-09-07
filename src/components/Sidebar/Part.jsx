@@ -46,8 +46,7 @@ export const Part = forwardRef((props, ref) => {
   }));
 
   const setActiveElement = () => {
-    console.log('onClickCalled');
-    props.setActivePart(currentAngle.current);
+    if (!disabled.current) props.setActivePart(currentAngle.current);
   };
 
   useImperativeHandle(ref, () => ({
@@ -130,10 +129,10 @@ export const Part = forwardRef((props, ref) => {
       return !disabled.currrent;
     },
     canMove: () => {
-      if (props.index === 0 && currentAngle.current <= 160) {
+      if (props.index === 0 && currentAngle.current <= 160 && !props.infinite) {
         return false;
       }
-      if (props.index !== 0 && currentAngle.current >= 200) {
+      if (props.index !== 0 && currentAngle.current >= 200 && !props.infinite) {
         return false;
       }
       return true;
