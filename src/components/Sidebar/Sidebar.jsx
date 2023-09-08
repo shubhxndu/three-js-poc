@@ -2,7 +2,7 @@ import { useEffect, useRef, useCallback, useState } from 'react';
 import { animated, to, useSprings } from '@react-spring/web';
 import { Part } from './Part';
 import useWindowDimensions from '../../hooks/useWindowDimensions';
-const numberOfParts = 6;
+const numberOfParts = 15;
 
 const parts = [...Array(numberOfParts).keys()];
 
