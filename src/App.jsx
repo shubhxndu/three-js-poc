@@ -6,7 +6,7 @@ function App() {
   return (
     <>
       <Suspense fallback={null}>
-        <Sidebar />
+        <Sidebar deviceType='Web' />
       </Suspense>
     </>
   );

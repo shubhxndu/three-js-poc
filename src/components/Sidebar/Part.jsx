@@ -8,14 +8,14 @@ export const Part = forwardRef((props, ref) => {
 
   useEffect(() => {
     currentAngle.current = props.angle;
-    if (currentAngle.current === 47) {
+    if (currentAngle.current === props.defaultAngleForHiddenParts) {
       disabled.current = true;
-      currentAngle.current = 40;
+      currentAngle.current = props.bottomDisabled;
     }
   }, []);
 
   const bind = useDrag(
-    ({ down, movement: [mx, my] }) => {
+    ({ down, movement: [_mx, my] }) => {
       if (down) {
         props.startDragging(my);
       } else {
@@ -61,16 +61,32 @@ export const Part = forwardRef((props, ref) => {
       if (currentAngle.current >= 360) {
         currentAngle.current = currentAngle.current % 360;
       }
-      if (currentAngle.current > 249 && currentAngle.current < 255 && delta < 0) {
+      if (
+        currentAngle.current > props.topPartPullPushRange[0] &&
+        currentAngle.current < props.topPartPullPushRange[1] &&
+        delta < 0
+      ) {
         props.pullElementFromTop(props.index);
       }
-      if (currentAngle.current > 249 && currentAngle.current < 255 && delta > 0) {
+      if (
+        currentAngle.current > props.topPartPullPushRange[0] &&
+        currentAngle.current < props.topPartPullPushRange[1] &&
+        delta > 0
+      ) {
         props.pushElementToTop(props.index);
       }
-      if (currentAngle.current > 105 && currentAngle.current < 112 && delta < 0) {
+      if (
+        currentAngle.current > props.bottomPartPullPushRange[0] &&
+        currentAngle.current < props.bottomPartPullPushRange[1] &&
+        delta < 0
+      ) {
         props.pushElementToBottom(props.index);
       }
-      if (currentAngle.current > 105 && currentAngle.current < 112 && delta > 0) {
+      if (
+        currentAngle.current > props.bottomPartPullPushRange[0] &&
+        currentAngle.current < props.bottomPartPullPushRange[1] &&
+        delta > 0
+      ) {
         props.pullElementFromBottom(props.index);
       }
       api.start({
@@ -127,10 +143,18 @@ export const Part = forwardRef((props, ref) => {
       return !disabled.currrent;
     },
     canMove: () => {
-      if (props.index === 0 && currentAngle.current <= 160 && !props.infinite) {
+      if (
+        props.index === 0 &&
+        currentAngle.current <= props.minAngleForFirstPart &&
+        !props.infinite
+      ) {
         return false;
       }
-      if (props.index !== 0 && currentAngle.current >= 200 && !props.infinite) {
+      if (
+        props.index !== 0 &&
+        currentAngle.current >= props.maxAngleForLastPart &&
+        !props.infinite
+      ) {
         return false;
       }
       return true;
