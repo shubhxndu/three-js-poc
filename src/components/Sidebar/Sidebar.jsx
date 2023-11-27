@@ -27,6 +27,7 @@ const settings = {
     activePartMovementDuration: 10,
     defaultPositionAngle: 180,
     mouseWheelSensitivity: 0.85,
+    scrollWheelSensitivity: 3,
     touchSensitivity: 0.85,
     angleSteps: 2,
     wheelMovementDirection: -1,
